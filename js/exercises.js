@@ -1,149 +1,160 @@
-// === MOTOR DE GENERACIÓN DE EJERCICIOS (60 NIVELES EN TOTAL) ===
-// Inspirado en los principios de Norman Doidge: repetición progresiva, discriminación fina y atención focal.
-// Recomendado para neuroplasticidad general y estructurado para no sobreestimular (espectro autista).
+// === MOTOR DE GENERACIÓN DE EJERCICIOS (12 Baterías, 10 Niveles c/u = 120 Ejercicios) ===
+// Inspirado en BrainHQ y The Brain's Way of Healing. Fomenta la neuroplasticidad mediante
+// especificidad, repetición y aumento progresivo de exigencia.
 
 export const categories = [
     {
-        id: 'visual-attention',
-        name: 'Atención Visual Focalizada',
-        desc: 'Mejora la capacidad de detectar diferencias sutiles (discriminación fina).',
-        totalLevels: 10,
-        generateLevel: (levelNum) => {
-            // Level 1: grid 3x3, Level 10: grid 6x6. Más nivel, caracteres más parecidos.
-            let gridSize = Math.min(3 + Math.floor(levelNum / 3), 6);
-            let targetCount = gridSize * gridSize;
-            let options = [
-                ['O', 'Q'], ['1', 'I'], ['E', 'F'], ['M', 'N'], ['b', 'd'], ['p', 'q']
-            ];
-            // Niveles más altos usan letras confusas
-            let pairIndex = Math.min(Math.floor((levelNum - 1) / 2), options.length - 1);
-            let [baseChar, targetChar] = options[pairIndex];
-
-            return {
-                type: 'find-odd-one',
-                title: `Encuentra la letra "${targetChar}"`,
-                instruction: `Haz clic en la única "${targetChar}" escondida entre las "${baseChar}".`,
-                grid: gridSize,
-                targetIndex: Math.floor(Math.random() * targetCount),
-                baseChar,
-                targetChar,
-                timeLimit: Math.max(20 - levelNum, 5) // El tiempo disminuye
-            };
-        }
+        id: 'category-attention',
+        name: 'Atención y Enfoque',
+        desc: 'Mejora la capacidad de concentrarte y filtrar distracciones.',
+        icon: '🎯',
+        games: [
+            {
+                id: 'find-odd-one',
+                name: 'Discriminación Fina',
+                desc: 'Encuentra la letra sutilmente diferente entre distractores.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let gridSize = Math.min(3 + Math.floor(levelNum / 3), 6);
+                    let targetCount = gridSize * gridSize;
+                    let options = [['O', 'Q'], ['1', 'I'], ['E', 'F'], ['M', 'N'], ['b', 'd'], ['p', 'q']];
+                    let pairIndex = Math.min(Math.floor((levelNum - 1) / 2), options.length - 1);
+                    let [baseChar, targetChar] = options[pairIndex];
+                    return { type: 'find-odd-one', instruction: `Encuentra la única "${targetChar}".`, grid: gridSize, targetIndex: Math.floor(Math.random() * targetCount), baseChar, targetChar, timeLimit: Math.max(15 - levelNum, 5) };
+                }
+            },
+            {
+                id: 'stroop',
+                name: 'Control Inhibitorio',
+                desc: 'Ignora el texto y selecciona el COLOR de la tinta.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let colors = [{ name: 'Rojo', hex: '#ef4444' }, { name: 'Azul', hex: '#3b82f6' }, { name: 'Verde', hex: '#10b981' }, { name: 'Amarillo', hex: '#f59e0b' }, { name: 'Púrpura', hex: '#8b5cf6' }];
+                    let activeColors = colors.slice(0, Math.min(3 + Math.floor(levelNum / 3), colors.length));
+                    return { type: 'stroop', instruction: 'Selecciona el COLOR de la tinta, no lo que dice el texto.', rounds: 3 + Math.floor(levelNum / 2), colors: activeColors, matchProb: Math.max(0.4 - (levelNum * 0.03), 0.1) };
+                }
+            },
+            {
+                id: 'flanker',
+                name: 'Atención Selectiva',
+                desc: 'Identifica la dirección de la flecha central e ignora las de los lados.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let arrowsCount = 3 + (Math.floor(levelNum / 4) * 2); // 3, 5 o 7 flechas
+                    return { type: 'flanker', instruction: '¿Hacia dónde apunta la flecha del CENTRO?', rounds: 5 + Math.floor(levelNum / 2), arrows: arrowsCount, limitTime: Math.max(4 - levelNum * 0.2, 1) };
+                }
+            }
+        ]
     },
     {
-        id: 'working-memory',
-        name: 'Memoria de Trabajo Secuencial',
-        desc: 'Refuerza la memoria a corto plazo recordando secuencias de patrones.',
-        totalLevels: 10,
-        generateLevel: (levelNum) => {
-            // Level 1: 3 items, Level 10: 7 items. Grid size increases.
-            let sequenceLength = Math.min(3 + Math.floor(levelNum / 2), 8);
-            let displayTime = Math.max(1000 - (levelNum * 50), 300); // ms por item, más rápido al subir de nivel
-
-            return {
-                type: 'simon-sequence',
-                title: `Recuerda la Secuencia de ${sequenceLength} pasos`,
-                instruction: 'Observa el patrón iluminado y repítelo en el mismo orden.',
-                sequenceLength,
-                displayTime,
-                grid: 4 // Grid 2x2 para todos los niveles por ahora para mantener simpleza visual
-            };
-        }
+        id: 'category-memory',
+        name: 'Memoria y Retención',
+        desc: 'Refuerza la memoria de trabajo a corto plazo y el registro espacial.',
+        icon: '🧠',
+        games: [
+            {
+                id: 'simon-sequence',
+                name: 'Secuencia Sonora',
+                desc: 'Repite el patrón de cuadrículas iluminadas en el mismo orden.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'simon-sequence', instruction: 'Observa y repite la misma secuencia.', sequenceLength: 2 + Math.floor(levelNum / 1.5), grid: (levelNum > 5) ? 3 : 2, displayTime: Math.max(800 - (levelNum * 50), 300) };
+                }
+            },
+            {
+                id: 'pattern-recall',
+                name: 'Recall Visual',
+                desc: 'Memoriza la posición de los bloques en la cuadrícula.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let gridSquare = Math.min(3 + Math.floor(levelNum / 3), 5); // 3x3, 4x4, 5x5
+                    let activeBlocks = 2 + Math.floor(levelNum / 1.5);
+                    return { type: 'pattern-recall', instruction: 'Memoriza las posiciones iluminadas.', grid: gridSquare, blocks: activeBlocks, displayTime: Math.max(2000 - (levelNum * 100), 700) };
+                }
+            },
+            {
+                id: 'n-back',
+                name: 'N-Back Constante',
+                desc: 'Determina si la forma actual es igual a la anterior.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let n = levelNum < 5 ? 1 : 2; // 1-back luego 2-back
+                    return { type: 'n-back', instruction: `¿Esta forma es igual a la de hace ${n} paso(s)?`, nBack: n, rounds: 6 + levelNum, limitTime: Math.max(3 - levelNum * 0.1, 1.5) };
+                }
+            }
+        ]
     },
     {
-        id: 'inhibitory-control',
-        name: 'Control Inhibitorio (Stroop)',
-        desc: 'Entrena al cerebro para suprimir respuestas automáticas y fomentar el control cognitivo.',
-        totalLevels: 10,
-        generateLevel: (levelNum) => {
-            // Niveles altos: menos tiempo, más colores, más probabilidad de que texto y color de fuente no coincidan.
-            let colors = [
-                { name: 'Rojo', hex: '#ef4444' },
-                { name: 'Azul', hex: '#3b82f6' },
-                { name: 'Verde', hex: '#10b981' },
-                { name: 'Amarillo', hex: '#f59e0b' },
-                { name: 'Púrpura', hex: '#8b5cf6' }
-            ];
-            // Limitar colores al principio
-            let activeColors = colors.slice(0, Math.min(3 + Math.floor(levelNum / 3), colors.length));
-            let rounds = 5 + Math.floor(levelNum / 2);
-            let timeLimit = Math.max(5000 - (levelNum * 300), 1500); // Tiempo por ronda
-
-            return {
-                type: 'stroop',
-                title: 'Desafío de Colores',
-                instruction: 'Selecciona el COLOR en el que está escrita la palabra, ignorando lo que dice el texto.',
-                rounds,
-                colors: activeColors,
-                timeLimit,
-                matchProb: Math.max(0.5 - (levelNum * 0.04), 0.1) // Menos probabilidad de que coincidan a niveles altos
-            };
-        }
+        id: 'category-speed',
+        name: 'Velocidad Cerebral',
+        desc: 'Acelera el procesamiento visual y la velocidad de respuesta neuronal.',
+        icon: '⚡',
+        games: [
+            {
+                id: 'sequence-tap',
+                name: 'Conexión Numérica',
+                desc: 'Haz clic en los números en orden ascendente lo más rápido posible.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let count = Math.min(5 + Math.floor(levelNum * 2), 25);
+                    return { type: 'sequence-tap', instruction: `Toca los números en orden del 1 al ${count}.`, count: count, grid: Math.ceil(Math.sqrt(count)) };
+                }
+            },
+            {
+                id: 'fast-compare',
+                name: 'Comparación Rápida',
+                desc: 'Indica si las dos formas en pantalla son idénticas.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'fast-compare', instruction: '¿Son ESTRICTAMENTE idénticos?', rounds: 8 + Math.floor(levelNum / 2), diffProb: 0.5, complexShapes: levelNum > 4, limitTime: Math.max(3 - levelNum * 0.2, 0.8) };
+                }
+            },
+            {
+                id: 'visual-sweep',
+                name: 'Barridos Visuales',
+                desc: 'Identifica si el barrido visual ocurre hacia adentro o hacia afuera.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'visual-sweep', instruction: '¿Las barras convergen (juntas) o divergen (se separan)?', rounds: 5 + Math.floor(levelNum / 2), limitTime: Math.max(2 - levelNum * 0.1, 0.5) };
+                }
+            }
+        ]
     },
     {
-        id: 'sensory-discrimination',
-        name: 'Discriminación por Orientación',
-        desc: 'Aumenta la plasticidad de los mapas topográficos visuales distinguido rotaciones.',
-        totalLevels: 10,
-        generateLevel: (levelNum) => {
-            // Determinar si una flecha punta hacia el mismo lugar que la flecha objetivo.
-            // Más nivel = ángulos más similares.
-            let angleDiff = Math.max(90 - (levelNum * 8), 10);
-            let rounds = 5 + Math.floor(levelNum / 2);
-            let timeLimit = Math.max(10 - (levelNum * 0.5), 3); // Segundos
-
-            return {
-                type: 'angle-match',
-                title: 'Alineación Precisa',
-                instruction: 'Indica si la flecha de la derecha tiene la misma inclinación que la de la izquierda.',
-                rounds,
-                angleDiff, // El distractor difiere por este ángulo
-                timeLimit
-            };
-        }
-    },
-    {
-        id: 'processing-speed',
-        name: 'Velocidad de Procesamiento',
-        desc: 'Enseña al cerebro a procesar información más rápido mediante barridos visuales directos.',
-        totalLevels: 10,
-        generateLevel: (levelNum) => {
-            // Tocar los números en orden del 1 al N lo más rápido posible.
-            let count = Math.min(9 + Math.floor(levelNum * 1.5), 25);
-
-            return {
-                type: 'sequence-tap',
-                title: 'Conexión Numérica Rápida',
-                instruction: `Haz clic en los números en orden ascendente (del 1 al ${count}).`,
-                count,
-                grid: Math.ceil(Math.sqrt(count))
-            };
-        }
-    },
-    {
-        id: 'mental-agility',
-        name: 'Agilidad Mental y Matemáticas',
-        desc: 'Activa el córtex prefrontal con cálculos rápidos bajo límite de tiempo.',
-        totalLevels: 10,
-        generateLevel: (levelNum) => {
-            let ops = ['+'];
-            if (levelNum > 3) ops.push('-');
-            if (levelNum > 7) ops.push('*');
-
-            let maxNum = 5 + (levelNum * 2);
-            let rounds = 5 + levelNum;
-            let timeLimit = Math.max(10 - levelNum * 0.5, 3);
-
-            return {
-                type: 'math-speed',
-                title: 'Cálculo Rápido',
-                instruction: 'Resuelve las operaciones lo más rápido posible antes de que acabe el tiempo.',
-                ops,
-                maxNum,
-                rounds,
-                timeLimit
-            };
-        }
+        id: 'category-logic',
+        name: 'Inteligencia y Lógica',
+        desc: 'Activa el córtex prefrontal con cálculos rápidos y flexibilidad cognitiva.',
+        icon: '🧩',
+        games: [
+            {
+                id: 'math-speed',
+                name: 'Agilidad Matemática',
+                desc: 'Resuelve las operaciones aritméticas contrarreloj.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let ops = ['+']; if (levelNum > 3) ops.push('-'); if (levelNum > 7) ops.push('*');
+                    return { type: 'math-speed', instruction: 'Elige el resultado correcto rápido.', ops: ops, maxNum: 5 + (levelNum * 3), rounds: 4 + Math.floor(levelNum / 2) };
+                }
+            },
+            {
+                id: 'angle-match',
+                name: 'Rotación Espacial',
+                desc: 'Determina si la forma de la derecha está rotada o reflejada (diferente).',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'angle-match', instruction: '¿Tienen la misma forma sin importar si está rotada?', rounds: 5 + Math.floor(levelNum / 2), level: levelNum };
+                }
+            },
+            {
+                id: 'rule-switch',
+                name: 'Cambio de Regla',
+                desc: 'Sigue la regla indicada (Color o Forma) que cambia repentinamente.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let ruleChangeFreq = Math.max(5 - Math.floor(levelNum / 3), 2);
+                    return { type: 'rule-switch', instruction: 'Presta atención a la regla en pantalla (Forma o Color).', rounds: 8 + Math.floor(levelNum / 2), ruleFreq: ruleChangeFreq };
+                }
+            }
+        ]
     }
 ];
