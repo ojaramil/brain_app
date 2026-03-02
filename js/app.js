@@ -31,6 +31,7 @@ const gameContent = document.getElementById('game-content');
 const gameFeedback = document.getElementById('game-feedback');
 const btnStartLevel = document.getElementById('btn-start-level');
 const btnNextLevel = document.getElementById('btn-next-level');
+const btnGameCompletedBack = document.getElementById('btn-game-completed-back');
 
 // Variables Globales de Juego
 let currentGameConfig = null;
@@ -162,7 +163,11 @@ function loadGame(catIndex, gameIndex, level) {
 btnBack.addEventListener('click', () => {
     clearInterval(gameTimer);
     clearTimeout(gameTimer);
-    showScreen('games');
+    openCategory(currentCategoryIndex); // Refresh progress in games view
+});
+
+btnGameCompletedBack.addEventListener('click', () => {
+    openCategory(currentCategoryIndex); // Refresh progress
 });
 
 function prepareLevel() {
@@ -170,8 +175,12 @@ function prepareLevel() {
 
     if (currentLevelNum > gameInfo.totalLevels) {
         gameTitle.textContent = "¡Batería Completada!";
-        gameInstructions.innerHTML = `<h3>¡Has completado todos los niveles de ${gameInfo.name}!</h3><button id="btn-back-g" class="btn btn-primary">Volver</button>`;
-        document.getElementById('btn-back-g').addEventListener('click', () => showScreen('games'));
+        document.getElementById('instruction-title').textContent = "¡Has completado todos los niveles!";
+        document.getElementById('instruction-text').textContent = `Excelente trabajo en ${gameInfo.name}.`;
+
+        btnStartLevel.classList.add('hidden');
+        btnGameCompletedBack.classList.remove('hidden');
+
         gameContent.classList.add('hidden');
         gameFeedback.classList.add('hidden');
         gameInstructions.classList.remove('hidden');
@@ -183,6 +192,9 @@ function prepareLevel() {
     } catch (e) {
         console.error("Error generating config:", e);
     }
+
+    btnStartLevel.classList.remove('hidden');
+    btnGameCompletedBack.classList.add('hidden');
 
     gameTitle.textContent = `${gameInfo.name} - Nivel ${currentLevelNum}`;
     document.getElementById('instruction-title').textContent = gameInfo.name;
