@@ -1,7 +1,4 @@
-// === MOTOR DE GENERACIÓN DE EJERCICIOS (12 Baterías, 10 Niveles c/u = 120 Ejercicios) ===
-// Inspirado en BrainHQ y The Brain's Way of Healing. Fomenta la neuroplasticidad mediante
-// especificidad, repetición y aumento progresivo de exigencia.
-
+// === MOTOR DE GENERACIÓN DE EJERCICIOS (12 + 10 = 22 Juegos, 220 Niveles) ===
 export const categories = [
     {
         id: 'category-attention',
@@ -40,8 +37,28 @@ export const categories = [
                 desc: 'Identifica la dirección de la flecha central e ignora las de los lados.',
                 totalLevels: 10,
                 generateLevel: (levelNum) => {
-                    let arrowsCount = 3 + (Math.floor(levelNum / 4) * 2); // 3, 5 o 7 flechas
+                    let arrowsCount = 3 + (Math.floor(levelNum / 4) * 2);
                     return { type: 'flanker', instruction: '¿Hacia dónde apunta la flecha del CENTRO?', rounds: 5 + Math.floor(levelNum / 2), arrows: arrowsCount, limitTime: Math.max(4 - levelNum * 0.2, 1) };
+                }
+            },
+            // NUEVO 1
+            {
+                id: 'letter-search',
+                name: 'Búsqueda Cruzada',
+                desc: 'Encuentra todas las vocales dispersas en un mar de caracteres cruzados.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'letter-search', instruction: 'Toca todas las A, E, I, O, U rápido.', level: levelNum, grid: Math.min(4 + Math.floor(levelNum / 2), 6), targetsNum: 2 + Math.floor(levelNum / 2) };
+                }
+            },
+            // NUEVO 2
+            {
+                id: 'go-no-go',
+                name: 'Reacción Selectiva (Go/No-Go)',
+                desc: 'Reacciona al estímulo verde, pero frena tus impulsos con el rojo.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'go-no-go', instruction: 'Toca el círculo si es VERDE. NO lo toques si es ROJO.', rounds: 5 + levelNum, timeLimit: Math.max(1.5 - (levelNum * 0.08), 0.5) };
                 }
             }
         ]
@@ -67,7 +84,7 @@ export const categories = [
                 desc: 'Memoriza la posición de los bloques en la cuadrícula.',
                 totalLevels: 10,
                 generateLevel: (levelNum) => {
-                    let gridSquare = Math.min(3 + Math.floor(levelNum / 3), 5); // 3x3, 4x4, 5x5
+                    let gridSquare = Math.min(3 + Math.floor(levelNum / 3), 5);
                     let activeBlocks = 2 + Math.floor(levelNum / 1.5);
                     return { type: 'pattern-recall', instruction: 'Memoriza las posiciones iluminadas.', grid: gridSquare, blocks: activeBlocks, displayTime: Math.max(2000 - (levelNum * 100), 700) };
                 }
@@ -78,8 +95,29 @@ export const categories = [
                 desc: 'Determina si la forma actual es igual a la anterior.',
                 totalLevels: 10,
                 generateLevel: (levelNum) => {
-                    let n = levelNum < 5 ? 1 : 2; // 1-back luego 2-back
+                    let n = levelNum < 5 ? 1 : 2;
                     return { type: 'n-back', instruction: `¿Esta forma es igual a la de hace ${n} paso(s)?`, nBack: n, rounds: 6 + levelNum, limitTime: Math.max(3 - levelNum * 0.1, 1.5) };
+                }
+            },
+            // NUEVO 3
+            {
+                id: 'memory-match',
+                name: 'Pares Ocultos',
+                desc: 'Juego clásico de encontrar pares para reforzar recuerdo espacial.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let pairs = levelNum < 4 ? 3 : (levelNum < 7 ? 6 : 8);
+                    return { type: 'memory-match', instruction: 'Encuentra todos los pares idénticos.', pairs: pairs };
+                }
+            },
+            // NUEVO 4
+            {
+                id: 'reverse-simon',
+                name: 'Secuencia Inversa',
+                desc: 'Desafía tu memoria repitiendo el patrón hacia ATRÁS.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'reverse-simon', instruction: 'Observa y repite la secuencia al revés (desde el último hasta el primero).', sequenceLength: 2 + Math.floor(levelNum / 2), grid: (levelNum > 6) ? 3 : 2, displayTime: Math.max(900 - (levelNum * 50), 400) };
                 }
             }
         ]
@@ -117,6 +155,26 @@ export const categories = [
                 generateLevel: (levelNum) => {
                     return { type: 'visual-sweep', instruction: '¿Las barras convergen (juntas) o divergen (se separan)?', rounds: 5 + Math.floor(levelNum / 2), limitTime: Math.max(2 - levelNum * 0.1, 0.5) };
                 }
+            },
+            // NUEVO 5
+            {
+                id: 'target-clicker',
+                name: 'Tiro al Blanco',
+                desc: 'Toca los objetos dinámicos antes de que desaparezcan de tu periferia.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'target-clicker', instruction: 'Toca todos los círculos antes de que desaparezcan.', rounds: 5 + levelNum, timeLimit: Math.max(1500 - (levelNum * 100), 500) };
+                }
+            },
+            // NUEVO 6
+            {
+                id: 'dual-task',
+                name: 'Tarea Dual Dividida',
+                desc: 'Presta atención a dos datos disonantes al mismo tiempo en milisegundos.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'dual-task', instruction: '¿Es la letra una Vocal Y el número es Par?', rounds: 5 + Math.floor(levelNum / 2) };
+                }
             }
         ]
     },
@@ -153,6 +211,55 @@ export const categories = [
                 generateLevel: (levelNum) => {
                     let ruleChangeFreq = Math.max(5 - Math.floor(levelNum / 3), 2);
                     return { type: 'rule-switch', instruction: 'Presta atención a la regla en pantalla (Forma o Color).', rounds: 8 + Math.floor(levelNum / 2), ruleFreq: ruleChangeFreq };
+                }
+            },
+            // NUEVO 7
+            {
+                id: 'number-pattern',
+                name: 'Patrones Lógicos',
+                desc: 'Adivina qué número continúa en la secuencia matemática.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'number-pattern', instruction: '¿Qué número lógica la secuencia?', rounds: 3 + Math.floor(levelNum / 2), level: levelNum };
+                }
+            },
+            // NUEVO 8
+            {
+                id: 'logic-balance',
+                name: 'Silogismos Abstractos',
+                desc: 'Analiza oraciones lógicas para definir conclusiones ciertas o falsas.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'logic-balance', instruction: 'Lee la premisa y decide si la deducción es correcta.', rounds: 3 + Math.floor(levelNum / 2), level: levelNum };
+                }
+            }
+        ]
+    },
+    // NUEVA CATEGORÍA - INTELIGENCIA EMOCIONAL Y SOCIAL
+    {
+        id: 'category-social',
+        name: 'Habilidades Sociales',
+        desc: 'Herramientas para la lectura de rostros, empatía visual e inteligencia emocional.',
+        icon: '🤝',
+        games: [
+            // NUEVO 9
+            {
+                id: 'emotion-match',
+                name: 'Empatía y Lectura Emocional',
+                desc: 'Identifica la emoción correcta del rostro que corresponda a la indicación.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'emotion-match', instruction: 'Selecciona el rostro que corresponda con la emoción escrita.', rounds: 5 + Math.floor(levelNum / 2) };
+                }
+            },
+            // NUEVO 10
+            {
+                id: 'face-memory',
+                name: 'Memoria de Rastros',
+                desc: 'Memoriza la cara mostrada por un segundo y encuéntrala nuevamente.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'face-memory', instruction: 'Memoriza el rostro antes de que desaparezca y encuéntralo en el grupo.', rounds: 4 + Math.floor(levelNum / 2), displayTime: Math.max(1200 - (levelNum * 80), 300) };
                 }
             }
         ]

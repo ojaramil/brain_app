@@ -275,6 +275,16 @@ function startGamePlay() {
     else if (type === 'math-speed') playMathSpeed();
     else if (type === 'angle-match') playAngleMatch();
     else if (type === 'rule-switch') playRuleSwitch();
+    else if (type === 'letter-search') playLetterSearch();
+    else if (type === 'go-no-go') playGoNoGo();
+    else if (type === 'memory-match') playMemoryMatch();
+    else if (type === 'reverse-simon') playReverseSimon();
+    else if (type === 'target-clicker') playTargetClicker();
+    else if (type === 'dual-task') playDualTask();
+    else if (type === 'number-pattern') playNumberPattern();
+    else if (type === 'logic-balance') playLogicBalance();
+    else if (type === 'emotion-match') playEmotionMatch();
+    else if (type === 'face-memory') playFaceMemory();
 }
 
 function playGeneric(msg) {
@@ -775,4 +785,451 @@ function startTimer(seconds) {
             endLevelFailure();
         }, seconds * 1000);
     }
+}
+
+// ============================================
+// NUEVO JUEGO 1: Búsqueda Cruzada (letter-search)
+// ============================================
+let lsTargets = 0;
+let lsFound = 0;
+function playLetterSearch() {
+    lsFound = 0;
+    const g = currentGameConfig.grid;
+    lsTargets = currentGameConfig.targetsNum;
+    gameContent.innerHTML = `<div class="grid-game" style="grid-template-columns: repeat(${g}, 1fr)"></div>`;
+    const grid = gameContent.querySelector('.grid-game');
+
+    let totalCells = g * g;
+    let cells = Array(totalCells).fill('X');
+    let vocales = ['A', 'E', 'I', 'O', 'U'];
+    let distractores = ['M', 'N', 'Z', 'W', 'V', 'K', 'R'];
+
+    // Fill distractors
+    for (let i = 0; i < totalCells; i++) {
+        cells[i] = distractores[Math.floor(Math.random() * distractores.length)];
+    }
+
+    // Place targets
+    let placed = 0;
+    while (placed < lsTargets) {
+        let idx = Math.floor(Math.random() * totalCells);
+        if (!vocales.includes(cells[idx])) {
+            cells[idx] = vocales[placed % vocales.length];
+            placed++;
+        }
+    }
+
+    cells.forEach((char, i) => {
+        let cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.textContent = char;
+        cell.onclick = () => {
+            if (vocales.includes(char)) {
+                if (!cell.classList.contains('active')) {
+                    cell.classList.add('active');
+                    cell.style.background = 'var(--accent)';
+                    lsFound++;
+                    if (lsFound >= lsTargets) setTimeout(endLevelSuccess, 300);
+                }
+            } else {
+                cell.style.background = "#ef4444";
+                setTimeout(() => cell.style.background = "rgba(255,255,255,0.05)", 300);
+                endLevelFailure();
+            }
+        };
+        grid.appendChild(cell);
+    });
+}
+
+// ============================================
+// NUEVO JUEGO 2: Go/No-Go
+// ============================================
+let gngRounds = 0;
+function playGoNoGo() {
+    gngRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div id="gng-shape" style="width: 150px; height: 150px; border-radius: 50%; background: var(--panel-bg); margin: 0 auto; transition: background 0.1s;"></div>
+    `;
+    nextGoNoGoRound();
+}
+
+let gngTimeout;
+function nextGoNoGoRound() {
+    if (gngRounds <= 0) return endLevelSuccess();
+
+    let isGo = Math.random() > 0.3; // 70% verde
+    let shape = document.getElementById('gng-shape');
+
+    // reset
+    shape.style.background = 'var(--panel-bg)';
+    shape.onclick = null;
+    clearTimeout(gngTimeout);
+
+    // Delay between rounds
+    setTimeout(() => {
+        if (isGo) {
+            shape.style.background = '#10b981'; // Green
+            shape.onclick = () => { clearTimeout(gngTimeout); gngRounds--; shape.style.background = 'var(--panel-bg)'; nextGoNoGoRound(); };
+            gngTimeout = setTimeout(() => { endLevelFailure(); }, currentGameConfig.timeLimit * 1000);
+        } else {
+            shape.style.background = '#ef4444'; // Red
+            shape.style.borderRadius = '20%'; // Mínimo cambio
+            shape.onclick = () => { clearTimeout(gngTimeout); endLevelFailure(); };
+            gngTimeout = setTimeout(() => { gngRounds--; shape.style.borderRadius = '50%'; shape.style.background = 'var(--panel-bg)'; nextGoNoGoRound(); }, currentGameConfig.timeLimit * 1000);
+        }
+    }, 500 + Math.random() * 1000);
+}
+
+// ============================================
+// NUEVO JUEGO 3: Pares Ocultos (Memory Match)
+// ============================================
+let mmMatches = 0;
+let mmFlipped = [];
+function playMemoryMatch() {
+    mmMatches = 0;
+    mmFlipped = [];
+    let pairs = currentGameConfig.pairs;
+    let icons = ['🌟', '🍎', '🚗', '🏀', '🎸', '🕹️', '🎨', '🚀'];
+    let gameIcons = icons.slice(0, pairs);
+    let cards = [...gameIcons, ...gameIcons].sort(() => Math.random() - 0.5);
+
+    let cols = pairs <= 3 ? 3 : 4;
+    gameContent.innerHTML = `<div class="grid-game" style="grid-template-columns: repeat(${cols}, 1fr)"></div>`;
+    const grid = gameContent.querySelector('.grid-game');
+
+    cards.forEach((icon, i) => {
+        let cell = document.createElement('div');
+        cell.className = 'grid-cell memory-card';
+        cell.dataset.icon = icon;
+        cell.innerHTML = `<span>?</span>`;
+        cell.style.cursor = 'pointer';
+        cell.onclick = () => flipCard(cell, icon, pairs);
+        grid.appendChild(cell);
+    });
+}
+
+function flipCard(cell, icon, totalPairs) {
+    if (mmFlipped.length >= 2 || cell.classList.contains('matched') || cell.classList.contains('flipped')) return;
+
+    cell.classList.add('flipped');
+    cell.innerHTML = `<span>${icon}</span>`;
+    cell.style.background = 'var(--primary)';
+    mmFlipped.push(cell);
+
+    if (mmFlipped.length === 2) {
+        if (mmFlipped[0].dataset.icon === mmFlipped[1].dataset.icon) {
+            mmFlipped[0].classList.add('matched');
+            mmFlipped[1].classList.add('matched');
+            mmFlipped[0].style.background = 'var(--accent)';
+            mmFlipped[1].style.background = 'var(--accent)';
+            mmFlipped = [];
+            mmMatches++;
+            if (mmMatches >= totalPairs) setTimeout(endLevelSuccess, 500);
+        } else {
+            setTimeout(() => {
+                mmFlipped[0].classList.remove('flipped');
+                mmFlipped[1].classList.remove('flipped');
+                mmFlipped[0].innerHTML = `<span>?</span>`;
+                mmFlipped[1].innerHTML = `<span>?</span>`;
+                mmFlipped[0].style.background = 'rgba(255,255,255,0.05)';
+                mmFlipped[1].style.background = 'rgba(255,255,255,0.05)';
+                mmFlipped = [];
+            }, 800);
+        }
+    }
+}
+
+// ============================================
+// NUEVO JUEGO 4: Secuencia Inversa
+// ============================================
+function playReverseSimon() {
+    gameContent.innerHTML = `<div class="grid-game" id="rev-simon-grid" style="grid-template-columns: repeat(${currentGameConfig.grid}, 1fr)"></div>`;
+    const grid = document.getElementById('rev-simon-grid');
+    let cells = [];
+    for (let i = 0; i < (currentGameConfig.grid * currentGameConfig.grid); i++) {
+        let c = document.createElement('div'); c.className = 'grid-cell';
+        grid.appendChild(c); cells.push(c);
+    }
+
+    let sequence = [];
+    for (let i = 0; i < currentGameConfig.sequenceLength; i++) {
+        sequence.push(Math.floor(Math.random() * cells.length));
+    }
+
+    let step = 0;
+    let showInterval = setInterval(() => {
+        cells.forEach(c => c.style.background = 'rgba(255,255,255,0.05)');
+        if (step >= sequence.length) {
+            clearInterval(showInterval);
+            enableReverseSimonInput(cells, sequence);
+            return;
+        }
+        setTimeout(() => {
+            cells[sequence[step]].style.background = 'var(--primary)';
+            step++;
+        }, 200);
+    }, currentGameConfig.displayTime);
+}
+
+function enableReverseSimonInput(cells, sequence) {
+    let revSeq = [...sequence].reverse();
+    let currentInputStep = 0;
+    cells.forEach((c, idx) => {
+        c.onclick = () => {
+            c.style.background = 'var(--accent)';
+            setTimeout(() => c.style.background = 'rgba(255,255,255,0.05)', 200);
+
+            if (idx === revSeq[currentInputStep]) {
+                currentInputStep++;
+                if (currentInputStep === revSeq.length) setTimeout(endLevelSuccess, 400);
+            } else {
+                endLevelFailure();
+            }
+        };
+    });
+}
+
+// ============================================
+// NUEVO JUEGO 5: Tiro al Blanco (Target Clicker)
+// ============================================
+let tcRounds = 0;
+let tcTimer;
+function playTargetClicker() {
+    tcRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `<div id="tc-area" style="position:relative; width:100%; height:300px; background:rgba(0,0,0,0.2); border-radius:12px; overflow:hidden;"></div>`;
+    nextTargetClickerRound();
+}
+
+function nextTargetClickerRound() {
+    if (tcRounds <= 0) return endLevelSuccess();
+    let area = document.getElementById('tc-area');
+    area.innerHTML = '';
+
+    let dot = document.createElement('div');
+    dot.style.width = '60px';
+    dot.style.height = '60px';
+    dot.style.background = 'var(--accent)';
+    dot.style.borderRadius = '50%';
+    dot.style.position = 'absolute';
+
+    let maxX = area.clientWidth - 60;
+    let maxY = area.clientHeight - 60;
+    dot.style.left = Math.floor(Math.random() * maxX) + 'px';
+    dot.style.top = Math.floor(Math.random() * maxY) + 'px';
+
+    dot.onclick = () => {
+        clearTimeout(tcTimer);
+        tcRounds--;
+        nextTargetClickerRound();
+    };
+
+    area.appendChild(dot);
+    tcTimer = setTimeout(() => { endLevelFailure(); }, currentGameConfig.timeLimit);
+}
+
+// ============================================
+// NUEVO JUEGO 6: Tarea Dual
+// ============================================
+let dtRounds = 0;
+function playDualTask() {
+    dtRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div style="display:flex; justify-content:center; gap:40px; margin-bottom: 40px;">
+            <div id="dt-letter" style="font-size: 5rem; font-weight:bold; color:var(--primary);"></div>
+            <div id="dt-number" style="font-size: 5rem; font-weight:bold; color:var(--accent);"></div>
+        </div>
+        <div class="button-row">
+            <button id="btn-dt-yes" class="btn btn-primary btn-large">SÍ (Vocal Y Par)</button>
+            <button id="btn-dt-no" class="btn btn-outline btn-large">NO</button>
+        </div>
+    `;
+    nextDualTaskRound();
+}
+
+function nextDualTaskRound() {
+    if (dtRounds <= 0) return endLevelSuccess();
+
+    let forceTrue = Math.random() > 0.6;
+    let isVowel = Math.random() > 0.5 || forceTrue;
+    let isEven = Math.random() > 0.5 || forceTrue;
+    if (forceTrue) { isVowel = true; isEven = true; }
+
+    let vowels = ['A', 'E', 'I', 'O', 'U'];
+    let consonants = ['B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T'];
+    let evens = [2, 4, 6, 8];
+    let odds = [1, 3, 5, 7, 9];
+
+    let l = isVowel ? vowels[Math.floor(Math.random() * vowels.length)] : consonants[Math.floor(Math.random() * consonants.length)];
+    let n = isEven ? evens[Math.floor(Math.random() * evens.length)] : odds[Math.floor(Math.random() * odds.length)];
+
+    document.getElementById('dt-letter').textContent = l;
+    document.getElementById('dt-number').textContent = n;
+
+    let isBothCorrect = isVowel && isEven;
+
+    document.getElementById('btn-dt-yes').onclick = () => { if (isBothCorrect) { dtRounds--; nextDualTaskRound(); } else { endLevelFailure(); } };
+    document.getElementById('btn-dt-no').onclick = () => { if (!isBothCorrect) { dtRounds--; nextDualTaskRound(); } else { endLevelFailure(); } };
+}
+
+// ============================================
+// NUEVO JUEGO 7: Patrones Lógicos
+// ============================================
+let npRounds = 0;
+function playNumberPattern() {
+    npRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div id="np-seq" style="font-size: 3rem; margin-bottom: 40px; letter-spacing: 5px;"></div>
+        <div class="button-row" id="np-btns"></div>
+    `;
+    nextNumberPattern();
+}
+
+function nextNumberPattern() {
+    if (npRounds <= 0) return endLevelSuccess();
+
+    let step = Math.floor(Math.random() * 4) + 2;
+    let start = Math.floor(Math.random() * 10) + 1;
+    let isMulti = Math.random() > 0.5 && currentGameConfig.level > 4;
+
+    let seq = [];
+    let current = start;
+    for (let i = 0; i < 3; i++) {
+        seq.push(current);
+        if (isMulti) current *= step; else current += step;
+    }
+    let answer = current;
+
+    document.getElementById('np-seq').textContent = seq.join(', ') + ', ?';
+
+    let options = [answer, answer + step, answer - step, answer + step + 1].sort(() => Math.random() - 0.5);
+    let btns = document.getElementById('np-btns');
+    btns.innerHTML = '';
+    options.forEach(opt => {
+        let b = document.createElement('button');
+        b.className = 'btn btn-outline color-btn';
+        b.textContent = opt;
+        b.onclick = () => { if (opt === answer) { npRounds--; nextNumberPattern(); } else endLevelFailure(); };
+        btns.appendChild(b);
+    });
+}
+
+// ============================================
+// NUEVO JUEGO 8: Balanza Lógica
+// ============================================
+let lbRounds = 0;
+function playLogicBalance() {
+    lbRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div id="lb-text" style="font-size: 1.5rem; margin-bottom: 40px; line-height: 1.6; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px;"></div>
+        <div class="button-row">
+            <button id="btn-lb-true" class="btn btn-primary btn-large">Verdadero</button>
+            <button id="btn-lb-false" class="btn btn-outline btn-large">Falso</button>
+        </div>
+    `;
+    nextLogicBalance();
+}
+
+function nextLogicBalance() {
+    if (lbRounds <= 0) return endLevelSuccess();
+
+    let items = [['El león', 'El perro', 'El gato'], ['La roca', 'La madera', 'La pluma'], ['A', 'B', 'C']];
+    let p = items[Math.floor(Math.random() * items.length)];
+    let verb = "pesa más que";
+
+    let text = `${p[0]} ${verb} ${p[1]}.<br>${p[1]} ${verb} ${p[2]}.<br><br>`;
+
+    let isTrue = Math.random() > 0.5;
+    if (isTrue) { text += `¿${p[0]} ${verb} ${p[2]}?`; } // A > C (Verdad)
+    else { text += `¿${p[2]} ${verb} ${p[0]}?`; } // C > A (Falso)
+
+    document.getElementById('lb-text').innerHTML = text;
+    document.getElementById('btn-lb-true').onclick = () => { if (isTrue) { lbRounds--; nextLogicBalance(); } else endLevelFailure(); };
+    document.getElementById('btn-lb-false').onclick = () => { if (!isTrue) { lbRounds--; nextLogicBalance(); } else endLevelFailure(); };
+}
+
+// ============================================
+// NUEVO JUEGO 9: Emotion Match (Habilidades Sociales)
+// ============================================
+let emRounds = 0;
+function playEmotionMatch() {
+    emRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <h2 id="em-text" style="font-size: 2.5rem; color:var(--accent); margin-bottom:40px;"></h2>
+        <div class="grid-game" id="em-grid" style="grid-template-columns: repeat(2, 1fr); gap: 20px;"></div>
+    `;
+    nextEmotionMatch();
+}
+
+function nextEmotionMatch() {
+    if (emRounds <= 0) return endLevelSuccess();
+
+    let emotions = [
+        { name: "Felicidad", emoji: "😃" }, { name: "Tristeza", emoji: "😢" },
+        { name: "Enojo", emoji: "😠" }, { name: "Sorpresa", emoji: "😲" },
+        { name: "Miedo", emoji: "😨" }, { name: "Asco o Disgusto", emoji: "🤢" }
+    ];
+
+    let shuffled = [...emotions].sort(() => Math.random() - 0.5);
+    let options = shuffled.slice(0, 4);
+    let target = options[Math.floor(Math.random() * 4)];
+
+    document.getElementById('em-text').textContent = target.name;
+    const grid = document.getElementById('em-grid');
+    grid.innerHTML = '';
+
+    options.forEach(opt => {
+        let c = document.createElement('div');
+        c.className = 'grid-cell';
+        c.style.fontSize = '4rem';
+        c.style.cursor = 'pointer';
+        c.textContent = opt.emoji;
+        c.onclick = () => { if (opt.name === target.name) { emRounds--; nextEmotionMatch(); } else endLevelFailure(); };
+        grid.appendChild(c);
+    });
+}
+
+// ============================================
+// NUEVO JUEGO 10: Face Memory (Habilidades Sociales)
+// ============================================
+let fmRounds = 0;
+function playFaceMemory() {
+    fmRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div id="fm-main" style="font-size: 6rem; margin-bottom:40px; height: 150px; display:flex; justify-content:center; align-items:center;"></div>
+        <div class="grid-game hidden" id="fm-grid" style="grid-template-columns: repeat(3, 1fr)"></div>
+    `;
+    nextFaceMemory();
+}
+
+function nextFaceMemory() {
+    if (fmRounds <= 0) return endLevelSuccess();
+
+    let faces = ["👦", "👧", "👨", "👩", "👴", "👵", "👶", "👳‍♂️", "👲", "🧔"];
+    let shuffled = [...faces].sort(() => Math.random() - 0.5);
+    let options = shuffled.slice(0, 3);
+    let target = options[0];
+
+    // random shuffle options for presentation
+    options.sort(() => Math.random() - 0.5);
+
+    const main = document.getElementById('fm-main');
+    const grid = document.getElementById('fm-grid');
+
+    main.textContent = target;
+    main.classList.remove('hidden');
+    grid.classList.add('hidden');
+
+    setTimeout(() => {
+        main.classList.add('hidden');
+        grid.classList.remove('hidden');
+        grid.innerHTML = '';
+        options.forEach(opt => {
+            let c = document.createElement('div');
+            c.className = 'grid-cell';
+            c.style.fontSize = '3.5rem';
+            c.textContent = opt;
+            c.onclick = () => { if (opt === target) { fmRounds--; nextFaceMemory(); } else endLevelFailure(); };
+            grid.appendChild(c);
+        });
+    }, currentGameConfig.displayTime);
 }
