@@ -263,25 +263,291 @@ function endLevelFailure() {
 
 function startGamePlay() {
     const type = currentGameConfig.type;
-
     if (type === 'find-odd-one') playFindOddOne();
     else if (type === 'stroop') playStroop();
-    else if (type === 'flanker') playGeneric("Atención Selectiva generará flechas indicadoras.");
+    else if (type === 'flanker') playFlanker();
     else if (type === 'simon-sequence') playSimon();
-    else if (type === 'pattern-recall') playGeneric("Lógica de Recall Visual ocultando patrones.");
-    else if (type === 'n-back') playGeneric("Algoritmo N-back evaluando la imagen hace N pasos.");
+    else if (type === 'pattern-recall') playPatternRecall();
+    else if (type === 'n-back') playNBack();
     else if (type === 'sequence-tap') playSequenceTap();
-    else if (type === 'fast-compare') playGeneric("Lógica de comparación de formas asíncronas.");
-    else if (type === 'visual-sweep') playGeneric("Animación en canvas de barridos divergentes.");
+    else if (type === 'fast-compare') playFastCompare();
+    else if (type === 'visual-sweep') playVisualSweep();
     else if (type === 'math-speed') playMathSpeed();
-    else if (type === 'angle-match') playGeneric("Motor de rotación angular fina.");
+    else if (type === 'angle-match') playAngleMatch();
     else if (type === 'rule-switch') playRuleSwitch();
-    else playGeneric("Juego en desarrollo...");
 }
 
 function playGeneric(msg) {
     gameContent.innerHTML = `<p style="margin-top:40px; font-size: 1.2rem; text-align:center; color: var(--accent)">Simulación Completada Automáticamente.<br><em>[${msg}]</em></p>`;
     setTimeout(endLevelSuccess, 2000);
+}
+
+// ============================================
+// 1. ATENCIÓN - Flanker Task
+// ============================================
+let flankerRounds = 0;
+function playFlanker() {
+    flankerRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div id="flanker-arrows" style="font-size: 5rem; letter-spacing: 10px; margin-bottom: 40px;"></div>
+        <div class="button-row">
+            <button id="btn-left" class="btn btn-outline btn-large">← Izquierda</button>
+            <button id="btn-right" class="btn btn-outline btn-large">Derecha →</button>
+        </div>
+    `;
+    nextFlankerRound();
+}
+function nextFlankerRound() {
+    if (flankerRounds <= 0) return endLevelSuccess();
+    let isCongruent = Math.random() > 0.5;
+    let centerDir = Math.random() > 0.5 ? '←' : '→';
+    let flankDir = isCongruent ? centerDir : (centerDir === '←' ? '→' : '←');
+
+    let arrowStr = "";
+    let mid = Math.floor(currentGameConfig.arrows / 2);
+    for (let i = 0; i < currentGameConfig.arrows; i++) {
+        arrowStr += (i === mid) ? centerDir : flankDir;
+    }
+
+    document.getElementById('flanker-arrows').textContent = arrowStr;
+
+    document.getElementById('btn-left').onclick = () => { if (centerDir === '←') { flankerRounds--; nextFlankerRound(); } else endLevelFailure(); };
+    document.getElementById('btn-right').onclick = () => { if (centerDir === '→') { flankerRounds--; nextFlankerRound(); } else endLevelFailure(); };
+    startTimer(currentGameConfig.limitTime);
+}
+
+// ============================================
+// 2. MEMORIA - Pattern Recall
+// ============================================
+function playPatternRecall() {
+    const s = currentGameConfig.grid;
+    gameContent.innerHTML = `<div class="grid-game" id="recall-grid" style="grid-template-columns: repeat(${s}, 1fr)"></div>`;
+    const grid = document.getElementById('recall-grid');
+
+    let activeIndices = [];
+    while (activeIndices.length < currentGameConfig.blocks) {
+        let r = Math.floor(Math.random() * (s * s));
+        if (!activeIndices.includes(r)) activeIndices.push(r);
+    }
+
+    let cells = [];
+    for (let i = 0; i < (s * s); i++) {
+        let c = document.createElement('div');
+        c.className = 'grid-cell';
+        if (activeIndices.includes(i)) c.style.background = 'var(--accent)';
+        grid.appendChild(c);
+        cells.push(c);
+    }
+
+    setTimeout(() => {
+        cells.forEach(c => c.style.background = 'rgba(255,255,255,0.05)');
+        enableRecallInput(cells, activeIndices);
+    }, currentGameConfig.displayTime);
+}
+function enableRecallInput(cells, activeIndices) {
+    let found = 0;
+    cells.forEach((c, i) => {
+        c.onclick = () => {
+            if (activeIndices.includes(i)) {
+                c.style.background = 'var(--accent)';
+                c.onclick = null;
+                found++;
+                if (found >= activeIndices.length) setTimeout(endLevelSuccess, 500);
+            } else {
+                c.style.background = '#ef4444';
+                setTimeout(endLevelFailure, 400);
+            }
+        };
+    });
+}
+
+// ============================================
+// 3. MEMORIA - N-Back
+// ============================================
+let nBackRounds = 0;
+let nBackHistory = [];
+function playNBack() {
+    nBackRounds = currentGameConfig.rounds;
+    nBackHistory = [];
+    gameContent.innerHTML = `
+        <div id="nback-shape" style="width:150px; height:150px; background:var(--primary); margin-bottom:40px; display:flex; align-items:center; justify-content:center; font-size:4rem;"></div>
+        <p style="margin-bottom: 20px;">¿Es igual a la figura de hace ${currentGameConfig.nBack} turnos?</p>
+        <div class="button-row">
+            <button id="btn-nback-yes" class="btn btn-primary btn-large">Sí (Igual)</button>
+            <button id="btn-nback-no" class="btn btn-outline btn-large">No</button>
+        </div>
+    `;
+    nextNBackRound();
+}
+function nextNBackRound() {
+    if (nBackRounds <= 0) return endLevelSuccess();
+
+    let shapes = ['⭐', '🔺', '🟦', '🔴', '🟢'];
+    let currentShape = '';
+
+    // Forzamos que un 30% de veces SÍ sea igual para que haya respuestas "Sí"
+    let forceMatch = Math.random() < 0.3 && nBackHistory.length >= currentGameConfig.nBack;
+
+    if (forceMatch) {
+        currentShape = nBackHistory[nBackHistory.length - currentGameConfig.nBack];
+    } else {
+        currentShape = shapes[Math.floor(Math.random() * shapes.length)];
+    }
+
+    document.getElementById('nback-shape').textContent = currentShape;
+    document.getElementById('btn-nback-yes').disabled = nBackHistory.length < currentGameConfig.nBack;
+    document.getElementById('btn-nback-no').disabled = nBackHistory.length < currentGameConfig.nBack;
+
+    if (nBackHistory.length < currentGameConfig.nBack) {
+        document.getElementById('nback-shape').style.opacity = "0.5";
+        setTimeout(() => {
+            document.getElementById('nback-shape').style.opacity = "1";
+            nBackHistory.push(currentShape);
+            nextNBackRound();
+        }, 1000);
+        return;
+    }
+
+    let isMatch = (currentShape === nBackHistory[nBackHistory.length - currentGameConfig.nBack]);
+
+    document.getElementById('btn-nback-yes').onclick = () => {
+        if (isMatch) { nBackHistory.push(currentShape); nBackRounds--; nextNBackRound(); } else endLevelFailure();
+    };
+    document.getElementById('btn-nback-no').onclick = () => {
+        if (!isMatch) { nBackHistory.push(currentShape); nBackRounds--; nextNBackRound(); } else endLevelFailure();
+    };
+    startTimer(currentGameConfig.limitTime);
+}
+
+// ============================================
+// 4. VELOCIDAD - Fast Compare
+// ============================================
+let fcRounds = 0;
+function playFastCompare() {
+    fcRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div style="display:flex; gap: 40px; margin-bottom: 40px; font-size:5rem;">
+            <div id="fc-left"></div>
+            <div id="fc-right"></div>
+        </div>
+        <div class="button-row">
+            <button id="btn-fc-yes" class="btn btn-primary btn-large">Iguales</button>
+            <button id="btn-fc-no" class="btn btn-outline btn-large">Diferentes</button>
+        </div>
+    `;
+    nextFastCompareRound();
+}
+function nextFastCompareRound() {
+    if (fcRounds <= 0) return endLevelSuccess();
+
+    let symbols = currentGameConfig.complexShapes ? ['q', 'p', 'b', 'd', 'O', '0', 'I', 'l'] : ['⭐', '🌟', '⚙️', '🌞', '🌙'];
+    let isDiff = Math.random() < currentGameConfig.diffProb;
+    let sym1 = symbols[Math.floor(Math.random() * symbols.length)];
+    let sym2 = sym1;
+
+    if (isDiff) {
+        while (sym2 === sym1) sym2 = symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    document.getElementById('fc-left').textContent = sym1;
+    document.getElementById('fc-right').textContent = sym2;
+
+    document.getElementById('btn-fc-yes').onclick = () => { if (!isDiff) { fcRounds--; nextFastCompareRound(); } else endLevelFailure(); };
+    document.getElementById('btn-fc-no').onclick = () => { if (isDiff) { fcRounds--; nextFastCompareRound(); } else endLevelFailure(); };
+    startTimer(currentGameConfig.limitTime);
+}
+
+// ============================================
+// 5. VELOCIDAD - Visual Sweep
+// ============================================
+let vsRounds = 0;
+function playVisualSweep() {
+    vsRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div id="sweep-area" style="width: 300px; height: 100px; background: rgba(255,255,255,0.05); position:relative; overflow:hidden; margin-bottom:40px; border-radius:8px;">
+            <div id="bar1" style="width:20px; height:100%; background:var(--primary); position:absolute; top:0;"></div>
+            <div id="bar2" style="width:20px; height:100%; background:var(--accent); position:absolute; top:0;"></div>
+        </div>
+        <div class="button-row">
+            <button id="btn-vs-in" class="btn btn-outline btn-large">Hacia el Centro</button>
+            <button id="btn-vs-out" class="btn btn-outline btn-large">Hacia Afuera</button>
+        </div>
+    `;
+    nextVisualSweepRound();
+}
+function nextVisualSweepRound() {
+    if (vsRounds <= 0) return endLevelSuccess();
+
+    let isConverging = Math.random() > 0.5; // In (center) or Out
+    let b1 = document.getElementById('bar1');
+    let b2 = document.getElementById('bar2');
+
+    b1.style.transition = 'none';
+    b2.style.transition = 'none';
+
+    if (isConverging) {
+        b1.style.left = '0px'; b2.style.left = '280px';
+    } else {
+        b1.style.left = '140px'; b2.style.left = '160px'; // center
+    }
+
+    // Animate
+    setTimeout(() => {
+        b1.style.transition = 'left 0.4s linear';
+        b2.style.transition = 'left 0.4s linear';
+        if (isConverging) { b1.style.left = '140px'; b2.style.left = '160px'; }
+        else { b1.style.left = '0px'; b2.style.left = '280px'; }
+    }, 50);
+
+    document.getElementById('btn-vs-in').onclick = () => { if (isConverging) { vsRounds--; nextVisualSweepRound(); } else endLevelFailure(); };
+    document.getElementById('btn-vs-out').onclick = () => { if (!isConverging) { vsRounds--; nextVisualSweepRound(); } else endLevelFailure(); };
+    startTimer(currentGameConfig.limitTime);
+}
+
+// ============================================
+// 6. LOGICA - Angle Match
+// ============================================
+let amRounds = 0;
+function playAngleMatch() {
+    amRounds = currentGameConfig.rounds;
+    gameContent.innerHTML = `
+        <div style="display:flex; gap:50px; margin-bottom:40px;">
+            <div id="ang1" style="font-size: 5rem; font-weight:bold; transition: transform 0s;">F</div>
+            <div id="ang2" style="font-size: 5rem; font-weight:bold; transition: transform 0s;">F</div>
+        </div>
+        <div class="button-row">
+            <button id="btn-am-yes" class="btn btn-primary btn-large">Misma Figura</button>
+            <button id="btn-am-no" class="btn btn-outline btn-large">Reflejada (Diferente)</button>
+        </div>
+    `;
+    nextAngleMatchRound();
+}
+function nextAngleMatchRound() {
+    if (amRounds <= 0) return endLevelSuccess();
+
+    let isReflected = Math.random() > 0.5;
+    let rot1 = Math.floor(Math.random() * 360);
+    let rot2 = Math.floor(Math.random() * 360);
+
+    // Aumentar dificultad haciendo que las letras cambien en niveles altos
+    let chars = currentGameConfig.level > 5 ? ['R', 'P', 'J', 'G'] : ['F', 'L'];
+    let char = chars[Math.floor(Math.random() * chars.length)];
+
+    let el1 = document.getElementById('ang1');
+    let el2 = document.getElementById('ang2');
+
+    el1.textContent = char;
+    el2.textContent = char;
+
+    el1.style.transform = `rotate(${rot1}deg)`;
+    if (isReflected) {
+        el2.style.transform = `rotate(${rot2}deg) scaleX(-1)`;
+    } else {
+        el2.style.transform = `rotate(${rot2}deg) scaleX(1)`;
+    }
+
+    document.getElementById('btn-am-yes').onclick = () => { if (!isReflected) { amRounds--; nextAngleMatchRound(); } else endLevelFailure(); };
+    document.getElementById('btn-am-no').onclick = () => { if (isReflected) { amRounds--; nextAngleMatchRound(); } else endLevelFailure(); };
 }
 
 // 1. ODD ONE
