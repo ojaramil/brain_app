@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroFit - Infografía de Beneficios</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --color-1: #ef4444;
+            /* Rojo */
+            --color-2: #3b82f6;
+            /* Azul */
+            --color-3: #10b981;
+            /* Verde */
+            --color-4: #f59e0b;
+            /* Amarillo */
+            --color-5: #8b5cf6;
+            /* Púrpura */
+            --font-heading: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            line-height: 1.6;
+        }
+
+        .infographic-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decoraciones de fondo */
+        .infographic-container::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.2), transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            background: linear-gradient(to right, #ffffff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+        }
+
+        .benefits-timeline {
+            position: relative;
+            z-index: 1;
+        }
+
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            border-left: 6px solid var(--primary);
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-card:hover {
+            transform: translateX(10px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Colores específicos para cada tarjeta */
+        .card-1 {
+            border-left-color: var(--color-1);
+        }
+
+        .card-2 {
+            border-left-color: var(--color-2);
+        }
+
+        .card-3 {
+            border-left-color: var(--color-3);
+        }
+
+        .card-4 {
+            border-left-color: var(--color-4);
+        }
+
+        .card-5 {
+            border-left-color: var(--color-5);
+        }
+
+        .icon-box {
+            font-size: 2.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            flex-shrink: 0;
+        }
+
+        .content {
+            flex: 1;
+        }
+
+        .content h3 {
+            font-family: var(--font-heading);
+            font-size: 1.4rem;
+            margin: 0 0 8px 0;
+            color: #ffffff;
+        }
+
+        .content p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .benefit-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="infographic-container">
+
+        <div class="header">
+            <div class="badge">Por Asperger para Asperger</div>
+            <h1>NeuroFit</h1>
+            <p>Beneficios Clínicos y Cognitivos del Entrenamiento de Neuroplasticidad</p>
+        </div>
+
+        <div class="benefits-timeline">
+
+            <!-- Beneficio 1 -->
+            <div class="benefit-card card-5">
+                <div class="icon-box">🛡️</div>
+                <div class="content">
+                    <h3>1. Regulación y Filtro Sensorial</h3>
+                    <p>Entrena al cerebro para diferenciar la "Señal" (lo importante) del "Ruido" (distracciones). Ayuda
+                        enormemente a disminuir el agobio y la sobrecarga sensorial característica del espectro al
+                        enfocarse visual y auditivamente de manera selectiva.</p>
+                </div>
+            </div>
+
+            <!-- Beneficio 2 -->
+            <div class="benefit-card card-4">
+                <div class="icon-box">🧩</div>
+                <div class="content">
+                    <h3>2. Flexibilidad Cognitiva</h3>
+                    <p>Combate directamente la rigidez mental. Mediante ejercicios donde las reglas cambian
+                        repentinamente, el cerebro se acostumbra a adaptarse ante variables nuevas, reduciendo la
+                        ansiedad frente a cambios de rutina o planes.</p>
+                </div>
+            </div>
+
+            <!-- Beneficio 3 -->
+            <div class="benefit-card card-2">
+                <div class="icon-box">🛑</div>
+                <div class="content">
+                    <h3>3. Control Inhibitorio (Regulación de Impulsos)</h3>
+                    <p>Ejercicios como el <i>Stroop</i> enseñan al cerebro a frenar respuestas automáticas. Esto se
+                        traduce en un mejor control de impulsos emocionales y conductuales, aportando mayor calma antes
+                        de reaccionar.</p>
+                </div>
+            </div>
+
+            <!-- Beneficio 4 -->
+            <div class="benefit-card card-3">
+                <div class="icon-box">🧠</div>
+                <div class="content">
+                    <h3>4. Expansión de la Memoria de Trabajo</h3>
+                    <p>Aumenta la capacidad temporal del cerebro para retener datos. Tener una mejor "memoria RAM
+                        mental" facilita el procesamiento de múltiples pistas cognitivas que suelen ser agotadoras en el
+                        día a día.</p>
+                </div>
+            </div>
+
+            <!-- Beneficio 5 -->
+            <div class="benefit-card card-1">
+                <div class="icon-box">✨</div>
+                <div class="content">
+                    <h3>5. Entorno Libre de Ansiedad</h3>
+                    <p>A diferencia de otras apps, NeuroFit tiene un diseño neuro-inclusivo: sin luces parpadeantes, con
+                        un modo oscuro calmante y sin alertas estresantes al cometer errores. El aprendizaje se da en un
+                        ambiente 100% seguro.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p><strong>El cerebro no es una máquina fija, sino un órgano vivo capaz de sanar, reconectarse y
+                    transformarse mediante la práctica guiada.</strong></p>
+            <p style="margin-top: 10px; opacity: 0.7;">Desarrollado con ♥ para la comunidad neurodivergente.</p>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
