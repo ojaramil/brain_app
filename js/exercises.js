@@ -60,6 +60,16 @@ export const categories = [
                 generateLevel: (levelNum) => {
                     return { type: 'go-no-go', instruction: 'Toca el círculo si es VERDE. NO lo toques si es ROJO.', rounds: 5 + levelNum, timeLimit: Math.max(1.5 - (levelNum * 0.08), 0.5) };
                 }
+            },
+            // BRAIN HQ INSPIRED
+            {
+                id: 'hawk-eye',
+                name: 'Ojo de Halcón (BrainHQ)',
+                desc: 'Búsqueda visual periférica extrema. Localiza el pájaro específico que aparece por una fracción de segundo.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'hawk-eye', instruction: 'Fija tu vista en el centro. ¿Dónde apareció el pájaro dorador (⭐)?', rounds: 5 + Math.floor(levelNum / 2), displayTime: Math.max(800 - (levelNum * 60), 120) };
+                }
             }
         ]
     },
@@ -260,6 +270,103 @@ export const categories = [
                 totalLevels: 10,
                 generateLevel: (levelNum) => {
                     return { type: 'face-memory', instruction: 'Memoriza el rostro antes de que desaparezca y encuéntralo en el grupo.', rounds: 4 + Math.floor(levelNum / 2), displayTime: Math.max(1200 - (levelNum * 80), 300) };
+                }
+            },
+            // NUEVO SOCIAL AUTISMO
+            {
+                id: 'eye-gaze',
+                name: 'Seguimiento de Mirada',
+                desc: 'Identifica hacia qué dirección apuntan los ojos. Práctica clave para la atención conjunta.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'eye-gaze', instruction: '¿Hacia qué dirección miran los ojos?', rounds: 5 + Math.floor(levelNum / 2), limitTime: Math.max(4 - levelNum * 0.2, 1) };
+                }
+            },
+            {
+                id: 'emotion-context',
+                name: 'Contexto Emocional',
+                desc: 'Empareja la situación descrita en texto con la emoción facial correspondiente.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'emotion-context', instruction: '¿Cómo se sentiría alguien en esta situación?', rounds: 5 + Math.floor(levelNum / 2) };
+                }
+            }
+        ]
+    },
+    // NUEVA CATEGORÍA - PROCESAMIENTO AUDITIVO (Brain HQ)
+    {
+        id: 'category-auditory',
+        name: 'Procesamiento Auditivo',
+        desc: 'Mejora la velocidad y precisión con la que el cerebro procesa sonidos, inspirado directamente en el núcleo de BrainHQ.',
+        icon: '🎧',
+        games: [
+            {
+                id: 'sound-sweeps',
+                name: 'Barrido de Tonos',
+                desc: 'Ejercicio clásico de BrainHQ. Escucha dos tonos y determina si la frecuencia subió o bajó.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    return { type: 'sound-sweeps', instruction: '¿El sonido se volvió más AGUDO (Sube) o más GRAVE (Baja)?', rounds: 5 + Math.floor(levelNum / 2), limitTime: Math.max(3 - levelNum * 0.1, 1.0) };
+                }
+            },
+            {
+                id: 'sound-match',
+                name: 'Pares Sonoros',
+                desc: 'Combina memoria espacial y auditiva al encontrar pares de casillas que reproduzcan el mismo tono exacto.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let pairs = levelNum < 4 ? 2 : (levelNum < 7 ? 3 : 4);
+                    return { type: 'sound-match', instruction: 'Encuentra las casillas que emiten el mismo sonido.', pairs: pairs };
+                }
+            }
+        ]
+    },
+    // NUEVA CATEGORÍA - FUNCIONES EJECUTIVAS
+    {
+        id: 'category-executive',
+        name: 'Funciones Ejecutivas',
+        desc: 'Mejora la flexibilidad cognitiva y la planificación paso a paso. Útil para desarrollar rutinas mentales.',
+        icon: '⚖️',
+        games: [
+            {
+                id: 'path-planning',
+                name: 'Planificación de Ruta (Laberinto)',
+                desc: 'Visualiza y memoriza el camino correcto del punto A al B antes de que desaparezca.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let gridSize = Math.min(3 + Math.floor(levelNum / 4), 6);
+                    let pathLength = Math.min(3 + Math.floor(levelNum / 2), gridSize * gridSize - 2);
+                    return { type: 'path-planning', instruction: 'Memoriza la ruta y reprodúcela en orden exacto.', grid: gridSize, pathLen: pathLength, displayTime: Math.max(2000 - (levelNum * 150), 400) };
+                }
+            }
+        ]
+    },
+    // NUEVA CATEGORÍA - INTEGRACIÓN SENSORIAL
+    {
+        id: 'category-sensory',
+        name: 'Integración Visual-Sensorial',
+        desc: 'Entrena la capacidad de filtrar ruido visual y seguir estímulos sin abrumarse.',
+        icon: '🌌',
+        games: [
+            {
+                id: 'hidden-figure',
+                name: 'Figura Oculta',
+                desc: 'Encuentra el objetivo principal (⭐) escondido entre múltiples distractores que se solapan.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let distractors = 15 + (levelNum * 15);
+                    return { type: 'hidden-figure', instruction: 'Ignora el ruido y encuentra rápidamente la ⭐.', distractors: distractors, limitTime: Math.max(8 - levelNum * 0.4, 3) };
+                }
+            },
+            {
+                id: 'target-tracker',
+                name: 'Seguimiento Múltiple (UFOV)',
+                desc: 'Síguelas con la mirada mientras todas rebotan, y selecciónalas al detenerse.',
+                totalLevels: 10,
+                generateLevel: (levelNum) => {
+                    let totalSpheres = Math.min(4 + Math.floor(levelNum / 3), 10);
+                    let targets = Math.min(1 + Math.floor(levelNum / 4), 4);
+                    return { type: 'target-tracker', instruction: 'Sigue a las esferas iniciales mientras se mueven.', total: totalSpheres, targets: targets, moveSteps: 2 + Math.floor(levelNum / 2) };
                 }
             }
         ]
